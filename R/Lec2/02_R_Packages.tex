@@ -1,0 +1,170 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subfigure}
+\usepackage{fontspec}
+
+%\usetheme[progressbar=frametitle]{Madrid}
+\usetheme{metropolis}
+\definecolor{whalebluelight}{RGB}{0,191,255}
+\definecolor{whalebluenormal}{RGB}{113,221,255}
+\setbeamercolor{palette primary}{bg=whalebluenormal}
+\setbeamercolor{normal text}{fg=black}
+\usecolortheme[named=whalebluelight]{structure}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
+\linespread{1.2}
+
+\lstset{
+    basicstyle = \ttfamily,
+    columns = fullflexible,
+}
+
+\title{R Packages}
+\subtitle{Using C to Speed Up R}
+\date{\today}
+\author{Jingyu Sun}
+\institute{\small \emph{Ocean University of China, High Performance Computing Club, Qingdao 266100}}
+
+\begin{document}
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    \begin{frame}{Why R Packages?}
+        Normally we would use basic R packages that are currently provided by R, but sometimes we need some specific functions, and it is easy to do so.\par
+        Now we assume that you have already learned some basic grammar of C, in this slides we will use C to speed up R.\par
+    \end{frame}
+
+    \begin{frame}{Review of R and C}
+        We have to admit that R is not fast as many languages, this would be interpreted later (compared with Julia).\par
+        If you still remember something that probably mentioned in C Programming Course, you would know that C allow programmers to use pointers, which is a powerful and almost unique tool to speed up the program.\par
+    \end{frame}
+
+    \begin{frame}[fragile]{Begin with a Simple Example}
+        Suppose we have a function that calculate the sum of a vector, we can use the following code to do so:\par
+        \begin{lstlisting}[language=R]
+            sum_vector <- function(x) {
+                sum <- 0
+                for (i in 1:length(x)) {
+                    sum <- sum + x[i]
+                }
+                return(sum)
+            }
+        \end{lstlisting}
+    \end{frame}
+
+    \begin{frame}[fragile]{Begin with a Simple Example}
+        Now we can use the following code to test the function:\par
+        \begin{lstlisting}[language=R]
+            x <- 1:1000000
+            sum_vector(x)
+        \end{lstlisting}
+        But at what cost? Let's use the following code to test the time:\par
+        \begin{lstlisting}[language=R]
+            system.time(sum_vector(x))
+        \end{lstlisting}
+    \end{frame}
+
+    \begin{frame}[fragile]{Begin with a Simple Example}
+        If we try that in C, we can use the following code:\par
+        \begin{lstlisting}[language=C]
+            #include <R.h>
+            #include <Rinternals.h>
+            SEXP sum_vector(SEXP x) {
+                int n = LENGTH(x);
+                double sum = 0;
+                for (int i = 0; i < n; i++) {
+                    sum += REAL(x)[i];
+                }
+                return ScalarReal(sum);
+            }
+        \end{lstlisting}
+    \end{frame}
+
+    \begin{frame}{Begin with a Simple Example}
+        What we found interesting here is that the code is not as the same as our previous C codes.\par
+        We have to include some header files, and we have to clarify our function differently, here we use SEXP.\par
+        To begin with, start downloading Rtools from \url{https://cran.r-project.org/bin/windows/Rtools/} or simply, we would just use RStudio command to do so.\par
+    \end{frame}
+
+    \begin{frame}[fragile]{Start Compiling}
+        To start compiling, we can use the following command in RStudio:\par
+        \begin{lstlisting}[language=R]
+            system("R CMD SHLIB sum.c")
+        \end{lstlisting}
+        This command will generate a file called \texttt{sum.dll} in the current working directory.\par
+    \end{frame}
+
+    \begin{frame}[fragile]{Test Compilation}
+        Now we can use the following code to test the function:\par
+        \begin{lstlisting}[language=R]
+            dyn.load("sum.dll")
+            .Call("sum_vector", as.numeric(x))
+        \end{lstlisting}
+        We can also use the following code to test the time:\par
+        \begin{lstlisting}[language=R]
+            system.time(.Call("sum_vector", as.numeric(x)))
+        \end{lstlisting}
+    \end{frame}
+
+    \begin{frame}{Compare Efficiency}
+        Also remember that the code we use here should use as.numeric since the input value of our written function is a SEXP, which is a special type of object in R.\par
+        Now if installed and compiled correctly, we can find the time of the C function is much faster than the R function.\par
+    \end{frame}
+
+    \begin{frame}{Another Methods}
+        Also, we can also use \texttt{.C()} in R to do so, but this method is not recommended mainly since it is not as fast and widely used as \texttt{.Call()}.\par
+        If we still have some time, we would like to try that or we would use this as some practicals.\par
+    \end{frame}
+
+    \begin{frame}{More about R Extensions}
+        R project provides a much detailed document to assist us to have own packages, you can find that on \url{https://cran.r-project.org/doc/manuals/r-devel/R-exts.html}.\par
+        This document actually focuses on how to write R packages, which is a little bit different from what we are doing here. But in general, the key things that we want to present here is that using R does not means low efficiency, sometimes it's even more efficiency.\par
+    \end{frame}
+
+    \begin{frame}{Some Further Examples}
+        Above we discussed how to run C code in R with basic operations and shows the standard steps to develop a C program, now some other examples here are also provided.\par
+        The most common places that we want the algorithm to be fast is for matrix operations, now consider we want two big matrices doing simple multiplication, we would see the time is faster than R code.\par
+    \end{frame}
+
+    \begin{frame}[fragile]{Some Further Examples: Matrix Multiplication}
+        We can use the following code to test the time of R matrix multiplication:\par
+        \begin{lstlisting}[language=R]
+            A <- matrix(1:1000000, nrow = 1000, ncol = 1000)
+            B <- matrix(1:1000000, nrow = 1000, ncol = 1000)
+            C <- A %*% B
+            system.time(C)
+        \end{lstlisting}
+    \end{frame}
+
+    \begin{frame}[fragile]{Some Further Examples: Matrix Multiplication}
+        Now consider implement that in C, we would use the code provided in the \texttt{multi.c} file.\par
+        Just imagine, the complexity should be $O(n^3)$, and we can use the following code to test the time:\par
+        \begin{lstlisting}[language=R]
+            A <- matrix(1:1000000, nrow = 1000, ncol = 1000)
+            B <- matrix(1:1000000, nrow = 1000, ncol = 1000)
+            C <- .Call("multi", A, B)
+            system.time(C)
+        \end{lstlisting}
+    \end{frame}
+
+    \begin{frame}{Some Further Examples: Matrix Multiplication}
+        Now we might see that the R code itself is much more efficient, so the key we want to show in this example is that choose the method wisely.\par
+    \end{frame}
+
+    \begin{frame}{About Julia}
+        Actually there is a new language called Julia, which is similar to R, but much faster. This language changed the logic when designing, that is, the logic of the compiler is somehow different when using it.\par
+        Julia is a new language that is designed for high performance and many of its language features are similar with R, so learning R would be much benifical for using Julia in the future.\par
+        In later courses, we would like to use Julia and introduce its features.\par
+    \end{frame}
+
+    \begin{frame}
+        \begin{center}
+            This work by Ocean University of China, High Performance Computing Club is licensed under CC BY-NC 4.0. To view a copy of this license, visit \url{https://creativecommons.org/licenses/by-nc/4.0/}.\par
+            \includegraphics{by-nc.png}
+        \end{center}
+    \end{frame}
+\end{document}
