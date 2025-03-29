@@ -1,0 +1,195 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subfigure}
+\usepackage{fontspec}
+
+%\usetheme[progressbar=frametitle]{Madrid}
+\usetheme{metropolis}
+\definecolor{whalebluelight}{RGB}{0,191,255}
+\definecolor{whalebluenormal}{RGB}{113,221,255}
+\setbeamercolor{palette primary}{bg=whalebluenormal}
+\setbeamercolor{normal text}{fg=black}
+\usecolortheme[named=whalebluelight]{structure}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
+\linespread{1.2}
+
+\lstset{
+    basicstyle = \ttfamily,
+    columns = fullflexible,
+}
+
+\title{R Introduction}
+\subtitle{Basic R Introductions and Operations}
+\date{\today}
+\author{Jingyu Sun}
+\institute{\small \emph{Ocean University of China, High Performance Computing Club, Qingdao 266100}}
+
+\begin{document}
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    \begin{frame}{What is R?}
+        Initially R language was originied from S language, which was developed at Bell Laboratories by John Chambers and colleagues.\par
+        R language is designed for data analysis and statistical computing, which is a free software environment for statistical computing and graphics. Now it is a part of GNU project (so that's why I like it).\par
+        R language is widely used among statisticians and data miners for developing statistical software and data analysis.\par
+        Other hot statistical languages: Python (we will discuss later), Julia (especially for high performance computing), Stata (designed for applcations), etc.\par
+    \end{frame}
+
+    \begin{frame}{R Installation}
+        Steps for install R and RStudio:
+        \begin{itemize}
+            \item Download R from CRAN (TUNA mirror): \url{https://mirrors.tuna.tsinghua.edu.cn/CRAN/bin/windows/base/R-4.4.3-win.exe}
+            \item Install R
+            \item Download RStudio (A Integrated Developer Environment for R) \url{https://posit.co/download/rstudio-desktop/} (Remember to select the version that suit your systemm)
+            \item Install RStudio
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}[fragile]{Begin with R: read and write data}
+        Basically everytime we use R is for data analysing, so we need to know how to read and write data.\par
+        Suppose we have a data file named \texttt{iris.csv}, we can use the following code to read the data into R:\par
+        \begin{lstlisting}[language=R]
+        iris <- read.csv("iris.csv")
+        \end{lstlisting}
+    \end{frame}
+
+    \begin{frame}[fragile]{Begin with R: read and write data}
+        Now wondering if we have the iris data and we want to write it into a file, we can use the following code:\par
+        \begin{lstlisting}[language=R]
+        write.csv(iris, "iris2.csv")
+        \end{lstlisting}
+    \end{frame}
+
+    \begin{frame}{Begin with R: read and write data}
+        Now as you can see, read and write are probably easier than any other languages, which means that R is a good language for data analysis.\par
+        To learn this further, let's move on how to do basic operations in R.\par
+    \end{frame}
+
+    \begin{frame}{Basic Operations: Structure of data}
+        The most common scene we would face is we do not know how the data is strcutured. So we need to know how to see the structure of data.\par
+        \begin{itemize}
+            \item \texttt{head(iris)}: Show the first 6 rows of the data
+            \item \texttt{tail(iris)}: Show the last 6 rows of the data
+            \item \texttt{str(iris)}: Show the structure of the data
+            \item \texttt{summary(iris)}: Show the summary of the data
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Basic Operations: Access Data}
+        Also, similar to other languages, R has some methods to access data in the data frame.\par
+        \begin{itemize}
+            \item \texttt{iris\$SepalLengthCm}: Access the column named SepalLengthCm
+            \item \texttt{iris[1, ]}: Access the first row of the data
+            \item \texttt{iris[1:5, ]}: Access the first 5 rows of the data
+            \item \texttt{iris[iris\$SepalLengthCm > 6, ]}: Access the rows that SepalLengthCm is greater than 6
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Basic Operations: Statistics of Data}
+        While we already knows how to access the data, we can do some statistics on the data.\par
+        \begin{itemize}
+            \item \texttt{mean(iris\$SepalLengthCm)}: Calculate the mean of SepalLengthCm
+            \item \texttt{sd(iris\$SepalLengthCm)}: Calculate the standard deviation of SepalLengthCm
+            \item \texttt{cor(iris\$SepalLengthCm, iris\$SepalWidthCm)}: Calculate the correlation between SepalLengthCm and SepalWidthCm
+            \item \texttt{table(iris\$Species)}: Calculate the frequency of each species
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Basic Operations: Matrices and Arraies}
+        R also supports matrices and arraies, which are very useful in data analysis.\par
+        \begin{itemize}
+            \item \texttt{matrix(1:9, nrow=3, ncol=3)}: Create a 3x3 matrix
+            \item \texttt{array(1:9, dim=c(3, 3, 3))}: Create a 3x3x3 array
+            \item \texttt{t(matrix(1:9, nrow=3, ncol=3))}: Transpose the matrix
+            \item \texttt{solve(matrix(1:4, nrow=2, ncol=2))}: Inverse the matrix
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Basic Operations: Assign Values}
+        The previous code are all about how to get the data, but how to assign values to the data?\par
+        \begin{itemize}
+            \item \texttt{iris\$SepalLengthCm[1] <- 5.1}: Assign 5.1 to the first row of SepalLengthCm
+            \item \texttt{iris[1, 1] <- 5.1}: Assign 5.1 to the first row of the first column
+            \item \texttt{iris[iris\$SepalLengthCm > 6, 1] <- 6}: Assign 6 to the rows that SepalLengthCm is greater than 6
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Basic Operations: Assign Values}
+        Another operator related to this is \texttt{\%<\%}, which is used to assign values to a variable.\par
+        This operator means that the value on the right side is assigned to the variable on the left side.\par
+        \begin{itemize}
+            \item \texttt{a \%<\% 5}: Assign 5 to a
+            \item \texttt{a \%<\% b \%<\% 5}: Assign 5 to b and a
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Work Directory}
+        Every R session has a working directory, which is the default directory for file input and output.\par
+        We will simply use the configuration in R Studio to set the working directory.\par
+    \end{frame}
+
+    \begin{frame}{Progamming Logic}
+        It's not often use the programming logic in R, but it's still useful to know how to use it.\par
+        \begin{itemize}
+            \item \texttt{if (condition) \{ ... \} else \{ ... \}}: If the condition is true, execute the first block, otherwise execute the second block
+            \item \texttt{for (i in 1:10) \{ ... \}}: Execute the block 10 times
+            \item \texttt{while (condition) \{ ... \}}: Execute the block until the condition is false
+            \item \texttt{break}: Break the loop
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Applications of R: Machine Learning (Linear Regression)}
+        The basic machine learning method is regression, which here we will discuss linear regression. Still, we will use iris data as an example.\par
+        \begin{itemize}
+            \item \texttt{lm <- lm(SepalLengthCm \textasciitilde SepalWidthCm, data=iris)}: Fit a linear model to the data
+            \item \texttt{predict(lm, newdata=iris)}: Predict
+            \item \texttt{summary(lm)}: Show the summary
+            \item \texttt{plot(lm)}: Plot 
+            \item \texttt{abline(lm)}
+            \item \texttt{anova(lm)}: Show the ANOVA
+            \item \texttt{confint(lm)}: Show the CI
+        \end{itemize}
+    \end{frame}
+
+
+    \begin{frame}{Applications of R: Machine Learning (Nonlinear Regression)}
+        Also we could conduct some nonlinear regression.\par
+        \begin{itemize}
+            \item \texttt{lm <- lm(SepalLengthCm \textasciitilde{} SepalWidthCm\textasciicircum{}2, data=iris)}: Fit a linear model to the data
+            \item \texttt{predict(lm, newdata=iris)}: Predict
+            \item \texttt{summary(lm)}: Show the summary
+            \item \texttt{plot(lm)}: Plot 
+            \item \texttt{abline(lm)}
+            \item \texttt{anova(lm)}: Show the ANOVA
+            \item \texttt{confint(lm)}: Show the CI
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Applications of R: Machine Learning (Random Forest)}
+        Other methods like random forest are also available in R.\par
+        \begin{itemize}
+            \item \texttt{library(randomForest)}: Load the random forest library
+            \item \texttt{rf <- randomForest(SepalLengthCm \textasciitilde SepalWidthCm + PetalLengthCm + PetalWidthCm, data=iris)}: Fit a random forest model to the data
+            \item \texttt{predict(rf, newdata=iris)}: Predict
+            \item \texttt{importance(rf)}: Variable importance
+            \item \texttt{plot(rf)}: Plot 
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Summary of R Language}
+        Now we have discussed some basic operations in R, and also some applications of R. Later we would like to introduce some further applications by R.\par
+        The reason that why R does not take much time is that R is a very simple language (for learners), and it is initially designed for mathematicians, not for computing.\par
+    \end{frame}
+    
+    \begin{frame}
+        \begin{center}
+            This work by Ocean University of China, High Performance Computing Club is licensed under CC BY-NC 4.0. To view a copy of this license, visit \url{https://creativecommons.org/licenses/by-nc/4.0/}.\par
+            \includegraphics{by-nc.png}
+        \end{center}
+    \end{frame}
+\end{document}
